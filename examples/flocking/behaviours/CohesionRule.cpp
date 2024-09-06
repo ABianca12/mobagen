@@ -1,27 +1,28 @@
 #include "CohesionRule.h"
 
-#include "../../../cmake-build-debug/_deps/glm-src/glm/gtx/dual_quaternion.hpp"
+#include "../../../cmake-build-debug/_deps/glm-src/glm/gtc/constants.hpp"
 #include "../gameobjects/Boid.h"
 
 Vector2f CohesionRule::computeForce(const std::vector<Boid*>& neighborhood, Boid* boid) {
   Vector2f cohesionForce;
+  Vector2f centerMass = {0,0};
+  int numberInRadius = 0;
 
-  // todo: add your code here to make a force towards the center of mass
-  // hint: iterate over the neighborhood
-  Vector2f centerMassPosition;
-  for (int i = 0; i < neighborhood.size(); i++) {
-    centerMassPosition += neighborhood[i]->getPosition();
+  for (auto i :neighborhood) {
+    if (!neighborhood.empty() && i != boid) {
+      const double distanceToBoid = (i->transform.position - boid->transform.position).getMagnitude();
+      if (distanceToBoid <= boid->getDetectionRadius()) {
+        centerMass += i->transform.position;
+        numberInRadius++;
+      }
+      centerMass /= numberInRadius;
+
+      cohesionForce = centerMass - boid->transform.position;
+
+      if (cohesionForce.getMagnitude() <= boid->getDetectionRadius()) {
+        return (cohesionForce / boid->getDetectionRadius());
+      }
+    }
   }
-
-  centerMassPosition /= neighborhood.size();
-  // n is the number of agents within the radius, < operation, excluding the target agent
-  // Find number of agents within radius, that is n
-  // Pcm is the groups center of mass, it is all the agents within the radius's positions added together, divided by the number of agents
-  //
-  // Force is equal to (current agent's position * centerMassPosition)/radius
-  cohesionForce = (boid->getPosition() - centerMassPosition)/boid->getDetectionRadius();
-
-  // find center of mass
-
   return cohesionForce;
 }
