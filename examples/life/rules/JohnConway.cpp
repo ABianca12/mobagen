@@ -8,7 +8,25 @@ void JohnConway::Step(World& world) {
   // world.SetNext() sets next tile in buffer to dead or alive
   for (int i = 0; i < world.SideSize(); i++) {
     for (int j = 0; j < world.SideSize(); j++) {
+      bool isCurrentSpaceAlive = world.Get({i, j});
+      int liveNeighbors = CountNeighbors(world, {i, j});
 
+      if (isCurrentSpaceAlive) {
+        if (liveNeighbors < 2) {
+          world.SetCurrent({i,j}, false);
+        }
+        else if (liveNeighbors == 2 || liveNeighbors == 3) {
+          world.SetCurrent({i,j}, true);
+        }
+        else if (liveNeighbors > 3) {
+          world.SetCurrent({i,j}, false);
+        }
+      }
+      if (!isCurrentSpaceAlive) {
+        if (liveNeighbors == 3) {
+          world.SetCurrent({i,j}, true);
+        }
+      }
     }
   }
 }
