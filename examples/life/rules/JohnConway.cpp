@@ -2,29 +2,30 @@
 
 #include <numeric>
 
-// Reference: https://playgameoflife.com/info
 void JohnConway::Step(World& world) {
-  // todo: implement
-  // world.SetNext() sets next tile in buffer to dead or alive
   for (int i = 0; i < world.SideSize(); i++) {
     for (int j = 0; j < world.SideSize(); j++) {
-      bool isCurrentSpaceAlive = world.Get({i, j});
-      int liveNeighbors = CountNeighbors(world, {i, j});
+      // Gets the state of the current space
+      const bool isCurrentSpaceAlive = world.Get({i, j});
+      // Gets the number of live neighbors to the current space
+      const int liveNeighbors = CountNeighbors(world, {i, j});
 
       if (isCurrentSpaceAlive) {
+        // Underpopulation rule
         if (liveNeighbors < 2) {
-          world.SetCurrent({i,j}, false);
+          world.SetNext({i,j}, false);
         }
-        else if (liveNeighbors == 2 || liveNeighbors == 3) {
-          world.SetCurrent({i,j}, true);
+        // Continuation rule
+        else if (liveNeighbors <= 3) {
+          world.SetNext({i, j}, true);
+        } else {
+          // Overpopulation rule
+          world.SetNext({i, j}, false);
         }
-        else if (liveNeighbors > 3) {
-          world.SetCurrent({i,j}, false);
-        }
-      }
-      if (!isCurrentSpaceAlive) {
+      } else {
+        // 3 alive neighbor rule
         if (liveNeighbors == 3) {
-          world.SetCurrent({i,j}, true);
+          world.SetNext({i, j}, true);
         }
       }
     }
@@ -32,15 +33,15 @@ void JohnConway::Step(World& world) {
 }
 
 int JohnConway::CountNeighbors(World& world, Point2D point) {
+  // accumulator is the cumulative number of neighbors by adding a boolean, ex, is there is a 3x3 grid a result 9 means all squares are filled
   int accumulator = 0;
 
-  for (int i = point.x - 1; i < point.x + 1; i++) {
-    for (int j = point.y - 1; j < point.y + 1; j++) {
-      if (point.x != i && point.y != j) {
-        accumulator += world.Get({i,j});
+  for (int i = point.x - 1; i < point.x + 2; i++) {
+    for (int j = point.y - 1; j < point.y + 2; j++) {
+      if (point.x != i || point.y != j) {
+        accumulator += static_cast<int>(world.Get({i,j}));
       }
     }
   }
-  // accumulator is the cumulative number of neighbors by adding a boolean, ex, is there is a 3x3 grid a result 9 means all squares are filled
   return accumulator;
 }
