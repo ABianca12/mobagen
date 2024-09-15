@@ -19,7 +19,7 @@ void JohnConway::Step(World& world) {
         else if (liveNeighbors <= 3) {
           world.SetNext({i, j}, true);
         } else {
-          // Overpopulation rule
+          // Anything that does not get caught by the first two statements would fall under the overpopulation rule
           world.SetNext({i, j}, false);
         }
       } else {
