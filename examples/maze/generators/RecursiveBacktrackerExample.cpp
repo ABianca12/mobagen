@@ -2,8 +2,14 @@
 #include "Random.h"
 #include "RecursiveBacktrackerExample.h"
 #include <climits>
+
 bool RecursiveBacktrackerExample::Step(World* w) {
   // todo: implement this
+  if (stack.empty() && visited.empty()) {
+    stack.push_back(randomStartPoint(w));
+  }
+
+  // Depth first search
   return false;
 }
 
@@ -33,7 +39,19 @@ std::vector<Point2D> RecursiveBacktrackerExample::getVisitables(World* w, const 
   auto sideOver2 = w->GetSize() / 2;
   std::vector<Point2D> visitables;
 
-  // todo: implement this
+  if (p.x - 1 >= -sideOver2) {
+    visitables.emplace_back(p.x - 1, p.y);
+  }
+  else if (p.x + 1 <= sideOver2) {
+    visitables.emplace_back(p.x + 1, p.y);
+  }
+
+  if (p.y - 1 >= -sideOver2) {
+    visitables.emplace_back(p.x, p.y - 1 );
+  }
+  else if (p.y + 1 <= sideOver2) {
+    visitables.emplace_back(p.x, p.y + 1 );
+  }
 
   return visitables;
 }
