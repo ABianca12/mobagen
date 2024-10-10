@@ -3,7 +3,9 @@
 #include <unordered_map>
 #include <queue>
 #include "World.h"
+
 using namespace std;
+
 std::vector<Point2D> Agent::generatePath(World* w) {
   unordered_map<Point2D, Point2D> cameFrom;  // to build the flowfield and build the path
   queue<Point2D> frontier;                   // to store next ones to visit
@@ -25,10 +27,86 @@ std::vector<Point2D> Agent::generatePath(World* w) {
     // for every neighbor set the cameFrom
     // enqueue the neighbors to frontier and frontierset
     // do this up to find a visitable border and break the loop
+
+    // Gets current point from stack
+    Point2D const p = frontier.front();
+    // Removes current point form stack
+    frontier.pop();
+    // Erases current point from frontierSet
+    frontierSet.erase(p);
+
+    int const gridHalfSize = w->getWorldSideSize() / 2;
+    if (p.y == gridHalfSize || p.x == gridHalfSize || p.y == -gridHalfSize || p.x == -gridHalfSize) {
+      borderExit = p;
+      break;
+    }
+
+    // Sets the current point as visited
+    visited[p] = true;
+    vector<Point2D> neighbors = getVisitableNeighbors(w, p, frontierSet, visited);
+
+    if (!neighbors.empty()) {
+      for (auto const n : neighbors) {
+        cameFrom[n] = p;
+        frontier.push(n);
+        frontierSet.insert(n);
+      }
+    }
   }
 
   // if the border is not infinity, build the path from border to the cat using the camefrom map
   // if there isnt a reachable border, just return empty vector
   // if your vector is filled from the border to the cat, the first element is the catcher move, and the last element is the cat move
-  return vector<Point2D>();
+  vector<Point2D> pathToExit;
+
+  if (borderExit != Point2D::INFINITE) {
+    Point2D currentExit = borderExit;
+
+    while (currentExit != catPos) {
+      pathToExit.push_back(currentExit);
+      currentExit = cameFrom[currentExit];
+    }
+  }
+
+  return pathToExit;
 }
+
+std::vector<Point2D> Agent::getVisitableNeighbors(World* world, Point2D p, std::unordered_set<Point2D> &queue, std::unordered_map<Point2D, bool> &visited) {
+  int startPoint = p.x - static_cast<int>(p.y % 2 == 0);
+  vector<Point2D> visitables;
+
+  // Looks for open neighbors above
+  for (int i = startPoint; i < startPoint + 2; i++) {
+    Point2D const checkNeighbor = {i, p.y - 1};
+
+    if (!queue.contains(checkNeighbor) && !visited.contains(checkNeighbor) && !world->getContent(checkNeighbor) && world->getCat() != checkNeighbor) {
+      visitables.push_back(checkNeighbor);
+    }
+  }
+
+  // Looks for open neighbors below
+  for (int i = startPoint; i < startPoint + 2; i++) {
+    Point2D const checkNeighbor = {i, p.y + 1};
+
+    if (!queue.contains(checkNeighbor) && !visited.contains(checkNeighbor) && !world->getContent(checkNeighbor) && world->getCat() != checkNeighbor) {
+      visitables.push_back(checkNeighbor);
+    }
+  }
+
+  // Looks for open neighbors on all sides and makes sure the current point is not included
+  startPoint = p.x - 1;
+  for (int i = startPoint; i < startPoint + 3; i++) {
+    if (i != p.x) {
+      Point2D const checkNeighbor = {i, p.y};
+
+      if (!queue.contains(checkNeighbor) && !visited.contains(checkNeighbor) && !world->getContent(checkNeighbor) && world->getCat() != checkNeighbor) {
+        visitables.push_back(checkNeighbor);
+      }
+    }
+  }
+
+  // Returns vector of all valid neighbors
+  return visitables;
+}
+
+
