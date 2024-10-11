@@ -122,6 +122,7 @@ void World::OnGui(ImGuiContext* context) {
   ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime,
               1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
   static auto newSize = sideSize;
+  bool usingBFS = true;
   if (ImGui::SliderInt("Side Size", &newSize, 5, 29)) {
     newSize = (newSize / 4) * 4 + 1;
     if (newSize != sideSize) {
@@ -154,6 +155,12 @@ void World::OnGui(ImGuiContext* context) {
   ImGui::SameLine();
   if (ImGui::Button("Pause")) {
     isSimulating = false;
+  }
+  ImGui::SameLine();
+  const std::string text = usingBFS ? std::string("BFS") : std::string("A*");
+  // ImGui button for BFS and A*
+  if (ImGui::Button(text.c_str())) {
+    usingBFS = !usingBFS;
   }
   ImGui::End();
 

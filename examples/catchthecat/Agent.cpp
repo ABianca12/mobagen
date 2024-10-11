@@ -71,7 +71,8 @@ std::vector<Point2D> Agent::generatePath(World* w) {
   return pathToExit;
 }
 
-std::vector<Point2D> Agent::getVisitableNeighbors(World* world, Point2D p, std::unordered_set<Point2D> &queue, std::unordered_map<Point2D, bool> &visited) {
+std::vector<Point2D> Agent::getVisitableNeighbors(World* world, Point2D p, std::unordered_set<Point2D>& queue,
+                                                  std::unordered_map<Point2D, bool>& visited) {
   int startPoint = p.x - static_cast<int>(p.y % 2 == 0);
   vector<Point2D> visitables;
 
@@ -99,7 +100,8 @@ std::vector<Point2D> Agent::getVisitableNeighbors(World* world, Point2D p, std::
     if (i != p.x) {
       Point2D const checkNeighbor = {i, p.y};
 
-      if (!queue.contains(checkNeighbor) && !visited.contains(checkNeighbor) && !world->getContent(checkNeighbor) && world->getCat() != checkNeighbor) {
+      if (!queue.contains(checkNeighbor) && !visited.contains(checkNeighbor) && !world->getContent(checkNeighbor)
+          && world->getCat() != checkNeighbor) {
         visitables.push_back(checkNeighbor);
       }
     }
@@ -107,6 +109,12 @@ std::vector<Point2D> Agent::getVisitableNeighbors(World* world, Point2D p, std::
 
   // Returns vector of all valid neighbors
   return visitables;
+}
+int Agent::heuristic(const Point2D p, int SideSizeOver2) {
+
+  if (p.x - p.y > 0 && p.x + p.y > 0) {
+
+  }
 }
 
 

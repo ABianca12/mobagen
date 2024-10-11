@@ -17,6 +17,8 @@ public:
 
   std::vector<Point2D> generatePath(World* w);
   std::vector<Point2D> getVisitableNeighbors(World* world, Point2D p, std::unordered_set<Point2D>& queue, std::unordered_map<Point2D, bool>& visited);
+
+  int heuristic(Point2D p, int SideSizeOver2);
 };
 
 #endif  // AGENT_H
