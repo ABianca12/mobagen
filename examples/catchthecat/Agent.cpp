@@ -19,15 +19,6 @@ std::vector<Point2D> Agent::generatePath(World* w) {
   Point2D borderExit = Point2D::INFINITE;  // if at the end of the loop we dont find a border, we have to return random points
 
   while (!frontier.empty()) {
-    // get the current from frontier
-    // remove the current from frontierset
-    // mark current as visited
-    // getVisitableNeightbors(world, current) returns a vector of neighbors that are not visited, not cat, not block, not in the queue
-    // iterate over the neighs:
-    // for every neighbor set the cameFrom
-    // enqueue the neighbors to frontier and frontierset
-    // do this up to find a visitable border and break the loop
-
     // Gets current point from stack
     Point2D const p = frontier.front();
     // Removes current point form stack
@@ -110,11 +101,110 @@ std::vector<Point2D> Agent::getVisitableNeighbors(World* world, Point2D p, std::
   // Returns vector of all valid neighbors
   return visitables;
 }
-int Agent::heuristic(const Point2D p, int SideSizeOver2) {
 
-  if (p.x - p.y > 0 && p.x + p.y > 0) {
+Point2D Agent::manhattanExit(World* world, Point2D point) {
+  // Variable declaration
+  int const SideSizeOver2 = world->getWorldSideSize() / 2;
+  int xWallDistance = SideSizeOver2 - abs(point.x);
+  int yWallDistance = SideSizeOver2 - abs(point.y);
 
+  // Checks left wall distance
+  if (xWallDistance < yWallDistance && point.x < 0) {
+    return {-SideSizeOver2, point.y};
   }
+  // Checks top wall distance
+  else if (xWallDistance > yWallDistance && point.y < 0) {
+    return {point.x, -SideSizeOver2};
+  }
+  // Checks right wall distance
+  else if (yWallDistance > xWallDistance && point.x > 0) {
+    return {SideSizeOver2, point.y};
+  }
+  // Checks bottom wall distance
+  else if (yWallDistance < xWallDistance && point.y > 0) {
+    return {point.x, SideSizeOver2};
+  }
+
+  // Returns closets point
+  return {point.x, point.y};
 }
 
+vector<Point2D> Agent::AStar(World* world) {
+  // Variable declaration
+  unordered_map<Point2D, Point2D> previousPoint;
+  priority_queue<AStarNode> frontier;
+  unordered_set<Point2D> frontierSet;
+  unordered_map<Point2D, bool> visitables;
+  Point2D endGoal = {0, 0};
 
+  AStarNode start = AStarNode(world->getCat());
+
+  if (world->getUsingManhattan()) {
+    endGoal = manhattanExit(world, start.point);
+    // Calculates the start node heuristic using manhattan
+    start.heuristic = start.calculateHeuristicManhattan(endGoal);
+  }else{
+    // Calculates the start node heuristic using the closest side method
+    start.heuristic = start.calculateHeuristicCloseSide(start.point, world->getWorldSideSize() / 2);
+  }
+
+  // Adds the start node to the frontier
+  frontier.push(start);
+  // Adds the start node to the frontierSet
+  frontierSet.insert(start.point);
+  // If a border isn't found, a random point is returned
+  Point2D borderExit = Point2D::INFINITE;
+
+  while (!frontier.empty()) {
+    // Gets the current node from the queue
+    AStarNode const node = frontier.top();
+    // Removes current node form priority queue
+    frontier.pop();
+    // Removes current node form the frontierSet
+    frontierSet.erase(node.point);
+
+    int const sideSizeOver2 = world->getWorldSideSize() / 2;
+
+    if (node.point.x == sideSizeOver2 || node.point.x == -sideSizeOver2 || node.point.y == sideSizeOver2 || node.point.y == -sideSizeOver2) {
+      borderExit = node.point;
+      break;
+    }
+
+    // Sets the node as visited
+    visitables[node.point] = true;
+    vector<Point2D> neighbors = getVisitableNeighbors(world, node.point, frontierSet, visitables);
+
+    // While there are neighbors, the previous point is updated and then added to the queue
+    if (!neighbors.empty()) {
+      for (Point2D const n : neighbors) {
+        previousPoint[n] = node.point;
+        AStarNode otherNeighborNode = AStarNode(n);
+        otherNeighborNode.weight = node.weight + 1;
+
+        // Test check
+        if (world->getUsingManhattan()) {
+          start.heuristic = start.calculateHeuristicManhattan(endGoal);
+        } else {
+          start.heuristic = start.calculateHeuristicCloseSide(start.point, world->getWorldSideSize() / 2);
+        }
+
+        frontier.push(otherNeighborNode);
+        frontierSet.insert(n);
+      }
+    }
+  }
+
+  vector<Point2D> pathToExit;
+  // If an end goal is found, the path is built
+  if (borderExit != Point2D::INFINITE) {
+    Point2D currentExit = borderExit;
+
+    // Checks all previous points form the goal
+    while (currentExit != start.point) {
+      pathToExit.push_back(currentExit);
+      currentExit = previousPoint[currentExit];
+    }
+  }
+
+  return pathToExit;
+}

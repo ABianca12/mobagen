@@ -20,6 +20,8 @@ private:
   int64_t moveDuration = 0;
   bool catWon = false;
   bool catcherWon = false;
+  bool usingBFS = false;
+  bool usingManhattan = false;
 
   Cat* cat;
   Catcher* catcher;
@@ -95,6 +97,12 @@ public:
 
   // returns true if cat wins on the given space
   bool catWinsOnSpace(Point2D point);
+
+  // Gets when BFS is used
+  bool getUsingBFS();
+
+  // Gets when Manhattan is used
+  bool getUsingManhattan();
 
   static std::vector<Point2D> neighbors(Point2D point) {
     std::vector<Point2D> n;

@@ -122,7 +122,6 @@ void World::OnGui(ImGuiContext* context) {
   ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime,
               1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
   static auto newSize = sideSize;
-  bool usingBFS = true;
   if (ImGui::SliderInt("Side Size", &newSize, 5, 29)) {
     newSize = (newSize / 4) * 4 + 1;
     if (newSize != sideSize) {
@@ -156,11 +155,18 @@ void World::OnGui(ImGuiContext* context) {
   if (ImGui::Button("Pause")) {
     isSimulating = false;
   }
-  ImGui::SameLine();
-  const std::string text = usingBFS ? std::string("BFS") : std::string("A*");
-  // ImGui button for BFS and A*
+
+  // ImGui button for switching from BFS and A*
+  std::string text = usingBFS ? "Using BFS" : "Using A*";
   if (ImGui::Button(text.c_str())) {
     usingBFS = !usingBFS;
+  }
+
+  if (!usingBFS) {
+    text = usingManhattan ? "Using Manhattan Heuristic" : "Using Closest Edge Heuristic"; //Setting text
+    if (ImGui::Button(text.c_str())) {
+      usingManhattan = !usingManhattan;
+    }
   }
   ImGui::End();
 
@@ -244,3 +250,7 @@ bool World::catWinsOnSpace(Point2D point) {
   auto sideOver2 = sideSize / 2;
   return abs(point.x) == sideOver2 || abs(point.y) == sideOver2;
 }
+
+// Get functions for using BFS and using manhattan
+bool World::getUsingBFS() { return usingBFS; }
+bool World::getUsingManhattan() { return usingManhattan; }
